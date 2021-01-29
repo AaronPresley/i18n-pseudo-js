@@ -2,6 +2,18 @@
 
 A simple module that will [pseudotranslate](https://en.wikipedia.org/wiki/Pseudotranslation) any given string. Better description TODO
 
+## Installation
+
+```shell
+> $ npm i i18n-pseudo
+```
+
+or for you `yarn` fans
+
+```shell
+> $ yarn add i18n-pseudo
+```
+
 ## Examples
 
 ### On the CLI
