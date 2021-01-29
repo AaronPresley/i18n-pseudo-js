@@ -27,16 +27,16 @@ describe('Expand Text', () => {
 describe('Pseudo Translate', () => {
   it('should convert ASCII text to pseudo', () => {
     const output = pseudoTranslate('Some Awesome Value');
-    expect(output).toEqual('你好Śỗṃệ Ã𝚠ệṧỗṃệ Ṽåḻűệ åḅçḋệⓕĝ𝖍ℹǰ🅺ḻṃņ世界');
+    expect(output).toEqual('你好Śỗṃệ Ã𝚠ệṧỗṃệ Ṽàḻűệ àḃċḋệḟĝȟíǰǩḻṃņ世界');
   });
 
   it('should ignore characters within handlebars', () => {
     const output = pseudoTranslate('Hi, {name}! Welcome to my cool script.');
-    expect(output).toEqual('你好Ĥℹ, {name}! 𝕎ệḻçỗṃệ ẗỗ ṃẙ çỗỗḻ ṧç𝖗ℹ𝙥ẗ. åḅçḋệⓕĝ𝖍ℹǰ🅺ḻṃņỗ𝙥𝖖𝖗ṧẗűṿ𝚠世界');
+    expect(output).toEqual('你好Ĥí, {name}! 𝕎ệḻċỗṃệ ẗỗ ṃẙ ċỗỗḻ ṧċříṗẗ. àḃċḋệḟĝȟíǰǩḻṃņỗṗqřṧẗűṿ𝚠世界');
   });
 
   it('should ignore characters within HTML', () => {
     const output = pseudoTranslate('You should <blink>really</blink> be thinking Globally');
-    expect(output).toEqual('你好Ỹỗű ṧ𝖍ỗűḻḋ <blink>𝖗ệåḻḻẙ</blink> ḅệ ẗ𝖍ℹņ🅺ℹņĝ Ǵḻỗḅåḻḻẙ åḅçḋệⓕĝ𝖍ℹǰ🅺ḻṃņỗ𝙥𝖖𝖗ṧẗű世界');
+    expect(output).toEqual('你好Ỹỗű ṧȟỗűḻḋ <blink>řệàḻḻẙ</blink> ḃệ ẗȟíņǩíņĝ Ǵḻỗḃàḻḻẙ àḃċḋệḟĝȟíǰǩḻṃņỗṗqřṧẗű世界');
   });
 });
