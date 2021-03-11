@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { Command } = require('commander');
-const pseudo = require('../dist').default;
+const { PseudoFormat } = require('../dist');
 
 const program = new Command();
 program
@@ -16,6 +16,5 @@ if (!args.length) {
   process.exit(1);
 }
 
-process.stdout.write(pseudo(args.join(' '), {
-  expandText: !opts.noExpand
-}) + '\n');
+const genPseudo = new PseudoFormat({ doExpand: !opts.noExpand });
+process.stdout.write(genPseudo.format(args.join(' ')));

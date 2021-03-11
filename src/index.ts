@@ -1,3 +1,2 @@
-import { pseudoTranslate } from './pseudo-translate';
+export { default as PseudoFormat } from './pseudo-format';
 export * from './types';
-export default pseudoTranslate;
