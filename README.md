@@ -1,42 +1,95 @@
 # i18n-pseudo
 
-A simple module that will [pseudotranslate](https://en.wikipedia.org/wiki/Pseudotranslation) any given string. Better description TODO
+[Pseudotranslation](https://en.wikipedia.org/wiki/Pseudotranslation) is an incredibly useful tool for localizing your apps. This module makes it easy to apply pseudo to any given string.
 
-## Installation
+If the provided string is an ICU Message formatted string, it will parse and generate the ICU Message with proper pseudo.
+
+# Installation
 
 ```shell
-> $ npm i i18n-pseudo
+$ npm i i18n-pseudo
 ```
 
 or for you `yarn` fans
 
 ```shell
-> $ yarn add i18n-pseudo
+$ yarn add i18n-pseudo
 ```
 
-## Examples
+or using `npx`:
+```
+$ npx i18n-pseudo "Hello, World"
+你好Ĥệḻḻỗ, 𝕎ỗřḻḋ àḃċḋệḟĝȟíǰ世界
+```
 
-### On the CLI
+# CLI
+
+## Example
 
 ```shell
-> $ pseudo Awesome Text Here
-你好Ã𝚠ệṧỗṃệ 𝑻ệẍẗ Ĥệ𝖗ệ åḅçḋệⓕĝ𝖍ℹǰ🅺ḻṃņ世界
+$ pseudo Awesome Text Here
+你好Ã𝚠ệṧỗṃệ Ťệẍẗ Ĥệřệ àḃċḋệḟĝȟíǰǩḻṃņ世界
 ```
 
-## In Code
+And if you don't want to expand the tet
+
+```shell
+$ pseudo Awesome Text Here -ne
+世界Ã𝚠ệṧỗṃệ Ťệẍẗ Ĥệřệ你好
+```
+
+## Options
+
+| Argument            | Default | Description |
+| ------------------- | ------- | ----------- |
+| `--noExpand`, `-ne` | `false` | When provided, the script will _not_ expand the incoming text |
+
+# Code
+
+## Example
+
+Basic usage
 
 ```javascript
-import pseudo from 'i18n-pseudo';
-console.log(pseudo('Awesome Text Here'))
-// 你好Ã𝚠ệṧỗṃệ 𝑻ệẍẗ Ĥệ𝖗ệ åḅçḋệⓕĝ𝖍ℹǰ🅺ḻṃņ世界
+import { PseudoFormat } from 'i18n-pseudo';
+const genPseudo = new PseudoFormat();
+console.log(genPseudo.format("Awesome Text Here"));
+// 你好Ã𝚠ệṧỗṃệ Ťệẍẗ Ĥệřệ àḃċḋệḟĝȟíǰǩḻṃņ世界
 ```
 
-## `pseudo(input[, options])`
+It can apply pseudo to ICU Messages as well:
 
-### Options
+```javascript
+import { PseudoFormat, PseudoFormatOptions } from 'i18n-pseudo';
 
-| Name | Description | Default |
-| ----- | ----- | -- |
-| `appendCharacters` | The characters to place before the translated text | `"你好"` |
-| `prependCharacters` | The characters to place after the translated text | `"世界"` |
-| `expandText` | Whether to expand the input text to reflect the length of some more verbose languages | `true` |
+const text = `You have {count, plural,
+    zero { nothing }
+    one { # item }
+    few { # items }
+    many { # items }
+} in your cart`;
+
+const opts:Partial<PseudoFormatOptions> = { doExpand: false };
+const genPseudo = new PseudoFormat(opts);
+console.log(genPseudo.format(text));
+
+/*
+世界Ỹỗű ȟàṿệ { count, plural,
+  zero { ņỗẗȟíņĝ }
+  one { # íẗệṃ }
+  few { # íẗệṃṧ }
+  many { # íẗệṃṧ }
+} íņ ẙỗűř ċàřẗȟṔṃỗŚqņṼřṿǰẗÃÃȐṿṃÃȐḋŚǰqḃ你好
+*/
+```
+
+## Options
+
+### `PseudoFormatOptions`
+
+| Property      | Default | Description |
+| ------------- | ------- | ----------- |
+| `appendChars` | `"你好"` | When provided, these characters will be appended to the output. This is helpful when you have certain characters that always seem to give your system trouble
+| `doExpand`    | `true`  | When `false`, will _not_ expand the input. Expanding characters is useful to ensure your codebase accounts for move verbose languages
+| `expandChars`    | ASCII upper and lower chars  | A string of characters that will be randomly selected to create an expansion of the input string.
+| `prependChars` | `"世界"` | When provided, these characters will be prepended to the output. This is helpful when you have certain characters that always seem to give your system trouble
