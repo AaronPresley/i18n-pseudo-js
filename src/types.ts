@@ -3,6 +3,7 @@ export interface PseudoFormatOptions {
   doExpand: boolean;
   expandChars: string;
   prependChars: string;
+  pseudoChars: Record<string, string>;
 }
 
 // The below is pulled from

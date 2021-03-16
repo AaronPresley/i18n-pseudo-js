@@ -7,6 +7,7 @@ const DEFAULT_OPTIONS:PseudoFormatOptions = {
     doExpand: true,
     expandChars: expansionCharacters,
     prependChars: '世界',
+    pseudoChars: pseudoCharacterMap,
 }
 
 class PseudoFormat {
@@ -68,6 +69,7 @@ class PseudoFormat {
      * @returns A pseudolocalized string
      */
     private makePseudo = (input:string):string => {
+        const { pseudoChars } = this.options;
         let ignoreUntilChar:string = null;
         let output:string = '';
 
@@ -85,7 +87,7 @@ class PseudoFormat {
             // Append to our output
             output += !!ignoreUntilChar
                 ? thisChar
-                : pseudoCharacterMap[thisChar] || thisChar;
+                : pseudoChars[thisChar] || thisChar;
         }
         
         return output;
