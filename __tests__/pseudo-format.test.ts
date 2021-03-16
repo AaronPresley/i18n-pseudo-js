@@ -9,14 +9,12 @@ const pfOpts:Partial<PseudoFormatOptions> = {
 describe('PseudoFormat', () => {
     it('should pseudo basic text', () => {
         const value = `Hello, World!`;
-        const genPseudo = new PseudoFormat({
-            doExpand: false,
-        });
+        const genPseudo = new PseudoFormat({ doExpand: false });
         const output = genPseudo.format(value);
         
         expect(output).toEqual(`世界Ĥệḻḻỗ, 𝕎ỗřḻḋ!你好`);
-        
     });
+
     it('should pseudo translate with an argment', () => {
         const value = `Hi, { name }!`;
         const genPseudo = new PseudoFormat(pfOpts);
@@ -109,5 +107,15 @@ describe('PseudoFormat', () => {
         expect(() => {
             genPseudo.format('This is a { bad string');
         }).toThrow(`There was a problem parsing that string. Are you sure there's not an issue with the ICU Message Format? Here's the error I got:\nSyntaxError: Expected "," or "}" but "s" found.`);
+    });
+
+    it('should allow me to substitue my own pseudo characters', () => {
+        const genPseudo = new PseudoFormat({
+            ...pfOpts,
+            doExpand: false,
+            pseudoChars: { 'A': 'Z', 'a': 'z' },
+        });
+        const output = genPseudo.format('Aaron');
+        expect(output).toEqual('Zzron');
     });
 });
