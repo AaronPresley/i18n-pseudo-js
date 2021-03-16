@@ -93,3 +93,4 @@ console.log(genPseudo.format(text));
 | `doExpand`    | `true`  | When `false`, will _not_ expand the input. Expanding characters is useful to ensure your codebase accounts for move verbose languages
 | `expandChars`    | ASCII upper and lower chars  | A string of characters that will be randomly selected to create an expansion of the input string.
 | `prependChars` | `"世界"` | When provided, these characters will be prepended to the output. This is helpful when you have certain characters that always seem to give your system trouble
+| `pseudoChars` | [Reference](https://github.com/AaronPresley/i18n-pseudo-js/blob/master/src/char-map.ts) | A hash map of the pseudo characters that will replace the ASCII characters. For default value, see the `pseudoCharacterMap` value in the `char-map.ts` file
