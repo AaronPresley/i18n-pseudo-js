@@ -7,9 +7,9 @@ const REQUIRED_ATTRS = ['name'];
 
 class AndroidConverter extends BaseConverter {
 
-  private processString = async (incomingString:IncomingAndroidString):Promise<TranslatableString> => {
-    const { _: value, $: attrs }:{ _: string, $: Record<string, string>} = incomingString;
-    console.warn({ incomingString });
+  private processString = async (incomingString:IncomingAndroidString):Promise<TranslatableString[]> => {
+    const { _: value, $: attrs, item: items } = incomingString;
+    const processedStrings:TranslatableString[] = [];
   
     // Attempt to get our string's key for the purpose of informitive error messages
     const key = attrs.name || '<unknown string name>';
@@ -27,7 +27,7 @@ class AndroidConverter extends BaseConverter {
     }
     
     // Ensure that we have a value
-    if (!value ||  !value.trim()) {
+    if (!items && (!value || !value.trim())) {
       this.issueError(`Skipping key named "${key}" because it's missing a value`);
       return;
     }
@@ -38,9 +38,14 @@ class AndroidConverter extends BaseConverter {
       this.issueWarning(`Skipping string ${key} because it has unexpected tags (${JSON.stringify(unexpectedTags)}). This is likely caused by the string value containing unescaped HTML. For help, see https://www.tutorialspoint.com/xml/xml_cdata_sections.htm`);
       return;
     }
+
+    if (items) {
+    }
+    else {
+      processedStrings.push({ key, value, description });
+    }
   
-    // console.warn(JSON.stringify(incomingString, null, 2));
-    return { key, value, description };
+    return processedStrings;
   }
 
   public processStringContent = async (): Promise<void> => {
@@ -67,12 +72,13 @@ class AndroidConverter extends BaseConverter {
       ...incomingStringArrays || [],
     ].map(this.processString);
 
-    let cleanedStrings:TranslatableString[];
-    try {
-      // Wait for the Promise to resolve and filter out any strings that couldn't be processed
-      cleanedStrings = (await Promise.all(stringCalls)).filter(str => !!str);
-    } catch (err) {
-      throw new Error(`Sorry, there was a problem processing the string content. ${err}`);
+    let cleanedStrings:TranslatableString[] = [];
+    const resolvedCalls = await Promise.all(stringCalls);
+
+    for (let foundStrs of resolvedCalls) {
+      // Skip if this was a string we couldn't process
+      if (!foundStrs) continue;
+      cleanedStrings = cleanedStrings.concat([ ...foundStrs ]);
     }
     
     for (let thisString of cleanedStrings) {
