@@ -1,95 +1,92 @@
-import { parseStringPromise } from 'xml2js';
+import { parseStringPromise, Builder } from 'xml2js';
+import { AndroidSingleStringObject } from './types';
 import BaseConverter, { ConvertException } from './base-converter';
-import { IncomingAndroidString, TranslatableString } from './types';
 
 const EXPECTED_XML_TAGS = ['_', '$', 'item'];
-const REQUIRED_ATTRS = ['name'];
 
 class AndroidConverter extends BaseConverter {
 
-  private processString = async (incomingString:IncomingAndroidString):Promise<TranslatableString[]> => {
-    const { _: value, $: attrs, item: items } = incomingString;
-    const processedStrings:TranslatableString[] = [];
-  
-    // Attempt to get our string's key for the purpose of informitive error messages
-    const key = attrs.name || '<unknown string name>';
-    const description = attrs.description || null;
-  
-    // Some useful vars we will use
-    const stringTags = Object.keys(incomingString);
-    const stringAttrKeys = Object.keys(attrs);
-    
-    // Ensure this string has our needed attributes
-    const missingAttrs = REQUIRED_ATTRS.filter(reqAttr => !stringAttrKeys.includes(reqAttr));
-    if (missingAttrs.length) {
-      this.issueError(`Skipping key named "${key}" because it's missing the following required attributes: ${missingAttrs.join(', ')}`)
-      return;
-    }
-    
-    // Ensure that we have a value
-    if (!items && (!value || !value.trim())) {
-      this.issueError(`Skipping key named "${key}" because it's missing a value`);
-      return;
-    }
-  
-    // Determine whether we think this string contained unescaped HTML attributes
-    const unexpectedTags = stringTags.filter(thisTag => !EXPECTED_XML_TAGS.includes(thisTag));
-    if (unexpectedTags.length) {
-      this.issueWarning(`Skipping string ${key} because it has unexpected tags (${JSON.stringify(unexpectedTags)}). This is likely caused by the string value containing unescaped HTML. For help, see https://www.tutorialspoint.com/xml/xml_cdata_sections.htm`);
-      return;
+  /**
+   * Processes the value found in the stringContent property and converts it
+   * to an object. Then it converts it back into an XML object with pseudo
+   * applied. Finally, it returns a baked XML string with pseudo in place.
+   * 
+   * @returns string
+   */
+  public generatePseudo = async ():Promise<string> => {
+    // Stop here if we don't have content to process
+    if (!this.stringContent) {
+      throw new ConvertException(`No string content has been set`);
     }
 
-    if (items) {
+    // Ensuring we have enough string content to process
+    let resources;
+    try {
+      ({ resources } = await parseStringPromise(this.stringContent));
+    } catch (err) {
+      throw new ConvertException(`There was a problem processing the string content. ${err}`);
     }
-    else {
-      processedStrings.push({ key, value, description });
+    
+    // Ensure we have strings to process
+    const { string:strings, 'string-array': stringArray } = resources;
+    if (!resources || (!strings && !stringArray)) {
+      throw new ConvertException(`No strings could be found in your string content. Maybe it's malformed?`);
     }
-  
-    return processedStrings;
+
+    // An object that will hold our pseudo XML object
+    const js2xml:Record<string, any> = { resources: {} };
+
+    // Convert each string tag
+    js2xml.resources.string = strings
+      // Process each string
+      .map(this.processString)
+      // Remove any empty strings that couldn't get process
+      .filter((s:any) => !!s);
+
+    // Convert each string-array tag
+    js2xml.resources['string-array'] = stringArray
+      // Process each string
+      .map(this.processString)
+      // Remove any empty strings that couldn't get process
+      .filter((s:any) => !!s);
+
+    // Generate XML from the built ob ject
+    const builder = new Builder();
+    // Return the XML string
+    return builder.buildObject(js2xml);
   }
 
-  public processStringContent = async (): Promise<void> => {
-    if (!this.stringContent) {
-      throw new ConvertException(`The stringContent property is empty. Must call setStringContent() first.`);
+  /**
+   * Processes a single string or string-array object by converting
+   * the relevant parts to pseudo
+   * @param thisString The current string or string-array to process
+   * @returns 
+   */
+  private processString = (thisString:AndroidSingleStringObject):AndroidSingleStringObject | undefined => {
+    // Some vars we'll need
+    const key:string = thisString.$?.name || '<unknown name>';
+    const value:string = thisString._ || null;
+    const items:string[] = thisString.item || [];
+    
+    // Determine if this string has a value
+    if (!items.length && (!value || !value.trim())) {
+      this.issueWarning(`Skipping key ${key} because it doesn't have a value`);
+      return;
     }
     
-    // Process the data
-    const { resources } = await parseStringPromise(this.stringContent) as Record<string, any>;
-
-    // Ensure we have something to process
-    if (!resources) {
-      throw new Error(`The Android string file doesn't have a <resources> element. Maybe the content is malformed?`);
-    }
-
-    const {
-      string: incomingStrings,
-      'string-array': incomingStringArrays,
-    } = resources;
-
-    // Create an array of promises for all of our strings
-    const stringCalls = [
-      ...incomingStrings || [],
-      ...incomingStringArrays || [],
-    ].map(this.processString);
-
-    let cleanedStrings:TranslatableString[] = [];
-    const resolvedCalls = await Promise.all(stringCalls);
-
-    for (let foundStrs of resolvedCalls) {
-      // Skip if this was a string we couldn't process
-      if (!foundStrs) continue;
-      cleanedStrings = cleanedStrings.concat([ ...foundStrs ]);
+    // Determine if this string has unexpected tags
+    const unexpectedTags = Object.keys(thisString).filter(tag => !EXPECTED_XML_TAGS.includes(tag));
+    if (unexpectedTags.length) {
+      this.issueWarning(`Skipping key ${key} because it has unexpected tags. This is likely caused by including unescaped HTML in the string's value. For help, see https://www.tutorialspoint.com/xml/xml_cdata_sections.htm`);
+      return;
     }
     
-    for (let thisString of cleanedStrings) {
-      const { key, value, description } = thisString;
-      if (this.stringData[key]) {
-        this.issueWarning(`Found duplicate string name of ${key}. I'm going to keep the data I came across first.`);
-        continue;
-      }
-
-      this.stringData[key] = { key, value, description };
-    }
+    // Build this string object, applying pseudo to the relevant parts
+    return {
+      $: { ...thisString.$ || [] },
+      ...(value ? { _: this.genPseudo.format(value) } : null),
+      ...(items.length ? { item: items.map(this.genPseudo.format) } : null)
+    } as AndroidSingleStringObject;
   }
 }
 

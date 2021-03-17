@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AndroidConverter should generate a pseudo translated string file 1`] = `
+"<?xml version=\\"1.0\\" encoding=\\"UTF-8\\" standalone=\\"yes\\"?>
+<resources>
+  <string name=\\"some_key_1\\" description=\\"Some Desc 1\\">世界Śỗṃệ Ṽàḻűệ 1你好</string>
+  <string-array name=\\"some_key_2\\">
+    <item>世界Śỗṃệ Ṽàḻűệ 1你好</item>
+    <item>世界Śỗṃệ Ṽàḻűệ 2你好</item>
+  </string-array>
+</resources>"
+`;
+
+exports[`AndroidConverter should generate to a file 1`] = `
+"<?xml version=\\"1.0\\" encoding=\\"UTF-8\\" standalone=\\"yes\\"?>
+<resources>
+  <string name=\\"some_key_1\\" description=\\"Some Desc 1\\">世界Śỗṃệ Ṽàḻűệ 1你好</string>
+  <string-array name=\\"some_key_2\\">
+    <item>世界Śỗṃệ Ṽàḻűệ 1你好</item>
+    <item>世界Śỗṃệ Ṽàḻűệ 2你好</item>
+  </string-array>
+</resources>"
+`;

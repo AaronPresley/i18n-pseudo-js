@@ -1,15 +1,18 @@
-import { BaseConverterOptions, TranslatableString } from './types';
+import { BaseConverterOptions } from './types';
 import fs from 'fs';
+import { PseudoFormatOptions } from '../types';
+import PseudoFormat from '../pseudo-format';
 
 const DEFAULT_OPTIONS:BaseConverterOptions = {};
 
 class BaseConverter {
   public stringContent: string;
-  public stringData: Record<string, TranslatableString> = {};
   public options:BaseConverterOptions;
+  public genPseudo:PseudoFormat;
 
-  constructor(options:Partial<BaseConverterOptions> = null) {
-    this.options = { ...DEFAULT_OPTIONS, ...options };
+  constructor(convertOptions:Partial<BaseConverterOptions> = null, pseudoOptions:Partial<PseudoFormatOptions> = null) {
+    this.options = { ...DEFAULT_OPTIONS, ...convertOptions };
+    this.genPseudo = new PseudoFormat(pseudoOptions);
   }
 
   /**
@@ -27,17 +30,30 @@ class BaseConverter {
   public setStringContentFromFile = async (filePath:string) => {
     this.setStringContent(await this.getFileContents(filePath));
   }
+  
+  /**
+   * Some helper functions to output errors and warnings. Doing it this way
+   * to allow for easiest mocking in tests, and to make it easier to move to
+   * a better logging approach later
+   */
+  public issueError = (message:string) => console.error(message);
+  public issueWarning = (message:string) => console.warn(message);
 
   /**
-   * This class is not responsible for processing strings, as that depends
-   * on the type of conversion we're doing
+   * This is the primary function used to process the stringContent. It must
+   * be implemented by child classes that understand the stringContent structure
    */
-  public processStringContent = async (): Promise<void> => {
-    throw new ConvertException(`The processStringContent() method must be overridden by the child class`);
-  }
+  public generatePseudo = async ():Promise<string> =>
+    Promise.reject(`You cannot call this method directly from BaseConverter`);
+  
+  public generatePseudoToFile = async (filePath:string, confirmOverwrite:boolean = false):Promise<void> => {
+    if (fs.existsSync(filePath) && !confirmOverwrite) {
+      throw new ConvertException(`The file ${filePath} already exists. Either remove the file or run with confirmOverwrite = true.`)
+    }
 
-  public issueWarning = (message:string) => console.warn(message);
-  public issueError = (message:string) => console.error(message);
+    const content = await this.generatePseudo();
+    return fs.writeFileSync(filePath, content, { encoding: 'utf-8' });
+  }
   
   /**
    * Splitting this file out to make it easy to mock within tests. This simple
