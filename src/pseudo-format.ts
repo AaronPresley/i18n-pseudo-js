@@ -26,17 +26,17 @@ class PseudoFormat {
         let output = input;
 
         const input_len = input.length;
-        let target_expansion:number = .2;
+        let target_expansion:number = 0;
 
         // Determine the percentage to expand this string based on the length
-        if (input_len <= 5) target_expansion = 1.2;
-        else if (input_len <= 10) target_expansion = 1;
-        else if (input_len <= 25) target_expansion = .8;
-        else if (input_len <= 50) target_expansion = .6;
-        else if (input_len <= 75) target_expansion = .4;
-
+        if (input_len <= 5) target_expansion = 1;
+        else if (input_len <= 10) target_expansion = .6;
+        else if (input_len <= 25) target_expansion = .4;
+        else if (input_len <= 50) target_expansion = .2;
+        
         // Add the expanded chars to the final string
-        const addlChars = Math.round(input_len * target_expansion);
+        const addlChars = Math.floor(input_len * target_expansion);
+        // console.warn({ target_expansion, addlChars });
         output = `${output}${this.generateRandomExpansion(addlChars)}`;
 
         return output;
