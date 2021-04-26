@@ -1,3 +1,4 @@
+import GraphemeSplitter from 'grapheme-splitter';
 import PseudoFormat from '../src/pseudo-format';
 import { PseudoFormatOptions } from '../src/types';
 
@@ -5,6 +6,8 @@ const pfOpts:Partial<PseudoFormatOptions> = {
     appendChars: '',
     prependChars: '',
 };
+
+const splitter = new GraphemeSplitter();
 
 describe('PseudoFormat', () => {
     it('should pseudo basic text', () => {
@@ -117,5 +120,39 @@ describe('PseudoFormat', () => {
         });
         const output = genPseudo.format('Aaron');
         expect(output).toEqual('Zzron');
+    });
+
+    describe('Text Expansion', () => {
+        it('should expand by 100% when there are less than 5 chars', () => {
+            const genPseudo = new PseudoFormat({ appendChars: '', prependChars: '' });
+            const length = splitter
+                .splitGraphemes(genPseudo.format('Hello'))
+                .length;
+            expect(length).toEqual(10);
+        });
+        
+        it('should expand by 60% when there are 6-10 chars', () => {
+            const genPseudo = new PseudoFormat({ appendChars: '', prependChars: '' });
+            const length = splitter
+                .splitGraphemes(genPseudo.format('Hi There'))
+                .length;
+            expect(length).toEqual(12);
+        });
+        
+        it('should expand by 40% when there are 11-25 chars', () => {
+            const genPseudo = new PseudoFormat({ appendChars: '', prependChars: '' });
+            const length = splitter
+                .splitGraphemes(genPseudo.format('Howdy, World'))
+                .length;
+            expect(length).toEqual(16);
+        });
+        
+        it('should expand by 20% when there are 26-50 chars', () => {
+            const genPseudo = new PseudoFormat({ appendChars: '', prependChars: '' });
+            const length = splitter
+                .splitGraphemes(genPseudo.format('This here is a short sentence'))
+                .length;
+            expect(length).toEqual(34);
+        });
     });
 });
