@@ -1,6 +1,6 @@
 # Changelog
 
-## `v1.1.2`
+## `v1.1.3`
 
 My initial text expansion seemed a bit excessive, so I reduced to the following:
 
